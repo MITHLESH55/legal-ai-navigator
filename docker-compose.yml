@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  legal-assistant:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: legal-assistant-backend
+    ports:
+      - "7860:7860"
+    environment:
+      - PORT=7860
+      # LLM Provider: "groq" or "gemini"
+      - LLM_PROVIDER=${LLM_PROVIDER:-groq}
+      # LiveKit
+      - LIVEKIT_URL=${LIVEKIT_URL}
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      # Groq (required if LLM_PROVIDER=groq)
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      # Gemini (required if LLM_PROVIDER=gemini)
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      # Deepgram
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      # Qdrant
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - QDRANT_COLLECTION_NAME=${QDRANT_COLLECTION_NAME}
+      # SerpAPI
+      - SERPAPI_API_KEY=${SERPAPI_API_KEY}
+      # e-Courts (Kleopatra API)
+      - ECOURTS_API_TOKEN=${ECOURTS_API_TOKEN}
+      # Embedding Model
+      - EMBEDDING_MODEL_NAME=${EMBEDDING_MODEL_NAME}
+      # --- NEW: Neo4j ---
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - legal-assistant-network
+    depends_on:
+      - neo4j
+      - qdrant
+
+  # --- NEW: Neo4j Service ---
+  neo4j:
+    image: neo4j:5-community
+    container_name: neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - ./neo4j-data:/data
+    networks:
+      - legal-assistant-network
+
+  # --- NEW: Qdrant Vector Database ---
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - legal-assistant-network
+
+networks:
+  legal-assistant-network:
+    driver: bridge
+
+volumes:
+  neo4j-data:
+  qdrant_data:

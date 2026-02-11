@@ -1,0 +1,59 @@
+# Core Flask and web dependencies
+Flask[async]
+Flask-CORS
+python-dotenv
+gunicorn
+pydantic>=2.0.0
+nest-asyncio==1.6.0  # For async event loop compatibility with grpc
+
+# LiveKit
+livekit
+livekit-agents
+livekit-api
+livekit-plugins-deepgram
+livekit-plugins-groq
+livekit-plugins-silero
+
+# Groq
+groq
+
+# LangChain Agentic RAG Stack
+langchain
+langchain-groq
+langchain-google-genai>=2.0.0
+langchain-community
+langchain-text-splitters
+langchain_qdrant
+langgraph
+
+# Optional: For SQLite-based persistence (uncomment if needed)
+# langgraph-checkpoint-sqlite
+
+# Google Generative AI and File API
+google-generativeai>=0.8.0
+google-cloud-aiplatform
+
+# Knowledge Graph
+neo4j
+langchain_neo4j
+yake
+
+# Vector Store & Embeddings
+qdrant-client
+fastembed
+pypdf
+
+# External API Tools
+google-search-results
+requests
+beautifulsoup4
+
+# Async support
+uvicorn
+aiofiles
+python-multipart
+
+google-auth-oauthlib
+
+
+spacy

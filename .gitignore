@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# Logs & data
+logs/
+neo4j-data/
+qdrant_data/
+
+# Virtual env
+venv/
+.env.*
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,53 @@
+# Use Python 3.11 slim image from multiple possible sources
+# If one fails, Docker will try the next
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PORT=7860
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    libffi-dev \
+    libssl-dev \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY req.txt .
+
+# Install Python dependencies (FIX INCLUDED HERE)
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r req.txt && \
+    pip install bcrypt --no-binary=bcrypt
+
+# Download spaCy model
+RUN python -m spacy download en_core_web_sm
+
+# Copy all application files
+COPY . .
+
+# Download Silero VAD models for voice activity detection
+RUN python -c "from livekit.plugins import silero; silero.VAD.load()" || echo "Silero VAD will load on first use"
+
+# Copy and make startup script executable
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Expose the port
+EXPOSE 7860
+
+# Add health check (targets the Flask app)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:$PORT/health || exit 1
+
+# Run the startup script
+CMD ["/app/start.sh"]
